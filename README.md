@@ -144,7 +144,7 @@ It will "chat" with a listening websocket on port 9900.
 
 #### TestChat Server
 
-The sever takes a message and broadcasts it to all other connected clients.
+The server takes a message and broadcasts it to all other connected clients.
 
 It requires some dependencies though to run. 
 We also want to reuse the virtualenv we made when we ran the tests. 
