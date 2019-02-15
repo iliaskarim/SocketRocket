@@ -26,7 +26,8 @@ CFHTTPMessageRef SRHTTPConnectMessageCreate(NSURLRequest *request,
                                             NSString *securityKey,
                                             uint8_t webSocketProtocolVersion,
                                             NSArray<NSHTTPCookie *> *_Nullable cookies,
-                                            NSArray<NSString *> *_Nullable requestedProtocols)
+                                            NSArray<NSString *> *_Nullable requestedProtocols,
+                                            NSDictionary<NSString *, NSString *> *_Nullable additionalHeaders)
 {
     NSURL *url = request.URL;
 
@@ -51,12 +52,15 @@ CFHTTPMessageRef SRHTTPConnectMessageCreate(NSURLRequest *request,
         }];
     }
 
-    // set header for http basic auth
-    NSString *basicAuthorizationString = SRBasicAuthorizationHeaderFromURL(url);
-    if (basicAuthorizationString) {
-        CFHTTPMessageSetHeaderFieldValue(message, CFSTR("Authorization"), (__bridge CFStringRef)basicAuthorizationString);
+    // Apply additional headers if any have been provided
+    if (additionalHeaders) {
+        [additionalHeaders enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
+            if (key.length && obj.length) {
+                CFHTTPMessageSetHeaderFieldValue(message, (__bridge CFStringRef)key, (__bridge CFStringRef)obj);
+            }
+        }];
     }
-
+    
     CFHTTPMessageSetHeaderFieldValue(message, CFSTR("Upgrade"), CFSTR("websocket"));
     CFHTTPMessageSetHeaderFieldValue(message, CFSTR("Connection"), CFSTR("Upgrade"));
     CFHTTPMessageSetHeaderFieldValue(message, CFSTR("Sec-WebSocket-Key"), (__bridge CFStringRef)securityKey);

@@ -41,12 +41,6 @@ extern BOOL SRURLRequiresSSL(NSURL *url)
     return ([scheme isEqualToString:@"wss"] || [scheme isEqualToString:@"https"]);
 }
 
-extern NSString *_Nullable SRBasicAuthorizationHeaderFromURL(NSURL *url)
-{
-    NSData *data = [[NSString stringWithFormat:@"%@:%@", url.user, url.password] dataUsingEncoding:NSUTF8StringEncoding];
-    return [NSString stringWithFormat:@"Basic %@", SRBase64EncodedStringFromData(data)];
-}
-
 extern NSString *_Nullable SRStreamNetworkServiceTypeFromURLRequest(NSURLRequest *request)
 {
     NSString *networkServiceType = nil;

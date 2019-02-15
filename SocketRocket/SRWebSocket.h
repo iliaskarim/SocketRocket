@@ -245,6 +245,11 @@ extern NSString *const SRHTTPResponseErrorKey;
 - (void)open;
 
 /**
+ Opens web socket with the additional HTTP headers given.
+ */
+- (void)openWithHttpHeaders:(nullable NSDictionary<NSString *, NSString *> *)httpHeaders;
+
+/**
  Closes a web socket using `SRStatusCodeNormal` code and no reason.
  */
 - (void)close;

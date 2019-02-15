@@ -81,6 +81,8 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
 
 @property (nonatomic, strong, readonly) SRDelegateController *delegateController;
 
+@property (nonatomic, copy, readwrite) NSDictionary<NSString *, NSString *> *additionalOpeningHttpHeaders;
+
 @end
 
 @implementation SRWebSocket {
@@ -310,13 +312,15 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
 #pragma mark - Open / Close
 ///--------------------------------------
 
-- (void)open
+- (void)openWithHttpHeaders:(NSDictionary<NSString *, NSString *> *)httpHeaders
 {
+    self.additionalOpeningHttpHeaders = httpHeaders;
+    
     assert(_url);
-    NSAssert(self.readyState == SR_CONNECTING, @"Cannot call -(void)open on SRWebSocket more than once.");
-
+    NSAssert(self.readyState == SR_CONNECTING, @"Cannot open SRWebSocket more than once.");
+    
     _selfRetain = self;
-
+    
     if (_urlRequest.timeoutInterval > 0) {
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(_urlRequest.timeoutInterval * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^{
@@ -326,13 +330,18 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
             }
         });
     }
-
+    
     _proxyConnect = [[SRProxyConnect alloc] initWithURL:_url];
-
+    
     __weak typeof(self) wself = self;
     [_proxyConnect openNetworkStreamWithCompletion:^(NSError *error, NSInputStream *readStream, NSOutputStream *writeStream) {
         [wself _connectionDoneWithError:error readStream:readStream writeStream:writeStream];
     }];
+}
+
+- (void)open
+{
+    [self openWithHttpHeaders:nil];
 }
 
 - (void)_connectionDoneWithError:(NSError *)error readStream:(NSInputStream *)readStream writeStream:(NSOutputStream *)writeStream
@@ -453,7 +462,8 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
                                                           _secKey,
                                                           SRWebSocketProtocolVersion,
                                                           self.requestCookies,
-                                                          _requestedProtocols);
+                                                          _requestedProtocols,
+                                                          self.additionalOpeningHttpHeaders);
 
     NSData *messageData = CFBridgingRelease(CFHTTPMessageCopySerializedMessage(message));
 
